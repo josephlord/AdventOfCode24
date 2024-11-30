@@ -3,7 +3,7 @@ import Testing
 @testable import AdventOfCode
 
 @Suite("Package Tests")
-enum AdventDayTests {
+struct AdventDayTests {
   @Test("Validate that data can be loaded")
   func testInitData() throws {
     let challenge = Day00()
