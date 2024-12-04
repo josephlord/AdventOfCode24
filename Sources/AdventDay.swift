@@ -1,6 +1,7 @@
 @_exported import Algorithms
 @_exported import Collections
 import Foundation
+import RegexBuilder
 
 protocol AdventDay: Sendable {
   associatedtype Answer
