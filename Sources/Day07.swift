@@ -112,7 +112,7 @@ struct Day07: AdventDay, Sendable {
   }
   
   func part1() async throws -> Int {
-    try await part1a()
+    try await part1b()
   }
   
   func validateLineP1a(target: Int, currentValue: Int, inputs: [Int].SubSequence) -> Bool {
@@ -124,13 +124,10 @@ struct Day07: AdventDay, Sendable {
     }
     let tail = inputs.dropFirst()
     let head = inputs.first!
-    if validateLineP2(target: target, currentValue: currentValue + head, inputs: tail) {
+    if validateLineP1a(target: target, currentValue: currentValue + head, inputs: tail) {
         return true
     }
-    if validateLineP2(target: target, currentValue: currentValue * head, inputs: tail) {
-        return true
-    }
-    if validateLineP2(target: target, currentValue: concat(lhs: currentValue, rhs: head), inputs: tail) {
+    if validateLineP1a(target: target, currentValue: currentValue * head, inputs: tail) {
         return true
     }
     return false
@@ -162,11 +159,11 @@ struct Day07: AdventDay, Sendable {
       for j in inputs.indices.dropFirst() {
         switch i.tit(j) {
         case 0:
-          computationValue += inputs[j]
+          computationValue = concat(lhs: computationValue, rhs: inputs[j])
         case 1:
           computationValue *= inputs[j]
         case 2:
-          computationValue = concat(lhs: computationValue, rhs: inputs[j])
+          computationValue += inputs[j]
         default:
           preconditionFailure()
         }
