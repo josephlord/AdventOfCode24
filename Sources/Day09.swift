@@ -86,6 +86,18 @@ struct Day09: AdventDay, Sendable {
     return total
   }
   
+  func firstIndexOfFreeSpace(freeSpaces:[FreeSpace], size: UInt8, beforeIndex: Int) -> Int? {
+    for (i, freeSpace) in freeSpaces.lazy.enumerated() {
+      if freeSpace.index >= beforeIndex {
+        return nil
+      }
+      if freeSpace.size >= size {
+        return i
+      }
+    }
+    return nil
+  }
+  
   func part2() async throws -> Int {
     // Array of indexes and sizes of free space
     var freeLists: [FreeSpace] = []
@@ -106,7 +118,7 @@ struct Day09: AdventDay, Sendable {
     }
     var runningTotal = 0
     for file in files.reversed() {
-      if let i = freeLists.firstIndex(where: { file.size <= $0.size }) {
+      if let i = firstIndexOfFreeSpace(freeSpaces: freeLists, size: file.size, beforeIndex: file.index) {
         runningTotal += scoreFile(file: file, atIndex: freeLists[i].index)
         if freeLists[i].size > file.size {
           freeLists[i].index += Int(file.size)
