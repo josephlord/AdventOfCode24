@@ -94,6 +94,10 @@ struct Day04: AdventDay, Sendable {
   let puzzleName: String = "--- Day 4: Placeholder! ---"
   fileprivate let grid: Grid<GridValue>
   
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
+  
   init(data: String) {
     self.data = data
     grid = try! Self.parseInput1(data: data)

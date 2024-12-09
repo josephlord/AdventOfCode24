@@ -16,6 +16,8 @@ protocol AdventDay: Sendable {
 
   /// An initializer that uses the provided test data.
   init(data: String)
+  
+  init(rawData: [UInt8])
 
   /// Computes and returns the answer for part one.
   func part1() async throws -> Answer
@@ -57,6 +59,8 @@ extension AdventDay {
   var puzzleName: String {
     "Day \(day)"
   }
+  
+  static var rawDataDays: [Int] { [9] }
 
   // Default implementation of `part1` so there aren't any interruptions when
   // just setting up.
@@ -72,9 +76,28 @@ extension AdventDay {
 
   /// An initializer that loads the test data from the corresponding data file.
   init() {
-    self.init(data: Self.loadData(challengeDay: Self.day))
+    if Self.rawDataDays.contains(Self.day) {
+      self.init(rawData: Self.loadRawData(challengeDay: Self.day))
+    } else {
+      self.init(data: Self.loadData(challengeDay: Self.day))
+    }
   }
 
+  static func loadRawData(challengeDay: Int) -> [UInt8] {
+    let dayString = String(format: "%02d", challengeDay)
+    let dataFilename = "day\(dayString)"
+    let dataURL = Bundle.module.url(
+      forResource: dataFilename,
+      withExtension: "txt",
+      subdirectory: "Data"
+    )
+    guard let dataURL
+    else {
+      fatalError("Couldn't find file '\(dataFilename).txt' in the 'Data' directory.")
+    }
+    return try! Data(contentsOf: dataURL).map { $0 }
+  }
+  
   static func loadData(challengeDay: Int) -> String {
     let dayString = String(format: "%02d", challengeDay)
     let dataFilename = "day\(dayString)"

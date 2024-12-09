@@ -8,7 +8,10 @@ struct Day03: AdventDay, Sendable {
   let puzzleName: String = "--- Day 3: Placeholder! ---"
   let multiples: [(Int,Int)]
   
-
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
+  
   init(data: String) {
     self.data = data
     let mulRegex = Regex {

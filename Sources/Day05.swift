@@ -9,6 +9,10 @@ struct Day05: AdventDay, Sendable {
   let updateLists: [[Int]]
   let followsDict: [Int: Set<Int>]
 
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
+  
   init(data: String) {
     self.data = data
     let (pairs, updateLists) = Self.parseInput(data: data)

@@ -6,6 +6,10 @@ struct Day02: AdventDay, Sendable {
   let day = 2
   let puzzleName: String = "--- Day 2: Placeholder! ---"
 
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
+  
   init(data: String) {
     self.data = data
   }

@@ -12,7 +12,10 @@ struct Day01: AdventDay, Sendable {
   let digitCountsLeft: [Int: Int]
   let digitCountsRight: [Int: Int]
   
-
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
+  
   init(data: String) {
     let lineRegex = Regex {
       Capture {

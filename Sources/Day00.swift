@@ -9,6 +9,10 @@ struct Day00: AdventDay, Sendable {
   init(data: String) {
     self.data = data
   }
+  
+  init(rawData: [UInt8]) {
+    preconditionFailure()
+  }
 
   // Replace this with your solution for the first part of the day's challenge.
   func part1() async throws -> Int {
