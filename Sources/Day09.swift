@@ -65,8 +65,60 @@ struct Day09: AdventDay, Sendable {
     return runningtotal
   }
   
+  struct FreeSpace {
+    var index: Int
+    var size: UInt8
+  }
+  
+  struct File {
+    var index: Int
+    var id: Int16
+    var size: UInt8
+  }
+  
+  func scoreFile(file: File, atIndex: Int) -> Int {
+    var total = 0
+    var index = atIndex
+    for _ in 0..<file.size {
+      total += index * Int(file.id)
+      index += 1
+    }
+    return total
+  }
+  
   func part2() async throws -> Int {
-    0
+    // Array of indexes and sizes of free space
+    var freeLists: [FreeSpace] = []
+    var files: [File] = []
+    var nextIsFile = true
+    var nextFileId: Int16 = 0
+    var currentPositionIndex = 0
+    for val in diskMap {
+      if nextIsFile {
+        files.append(File(index: currentPositionIndex, id: nextFileId, size: val))
+        nextFileId += 1
+        
+      } else if val != 0 {
+        freeLists.append(FreeSpace(index: currentPositionIndex, size: val))
+      }
+      currentPositionIndex += Int(val)
+      nextIsFile.toggle()
+    }
+    var runningTotal = 0
+    for file in files.reversed() {
+      if let i = freeLists.firstIndex(where: { file.size <= $0.size }) {
+        runningTotal += scoreFile(file: file, atIndex: freeLists[i].index)
+        if freeLists[i].size > file.size {
+          freeLists[i].index += Int(file.size)
+          freeLists[i].size -= file.size
+        } else {
+          freeLists.remove(at: i)
+        }
+      } else {
+        runningTotal += scoreFile(file: file, atIndex: file.index)
+      }
+    }
+    return runningTotal
   }
 }
 
