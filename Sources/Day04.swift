@@ -62,7 +62,8 @@ public struct Grid<Element> {
     }
     set {
       guard let newValue, (0..<columns).contains(x) && (0..<rows).contains(y) else { return }
-      data[y][x] = newValue }
+      data[y][x] = newValue
+    }
   }
   
 }
