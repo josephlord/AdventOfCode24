@@ -86,15 +86,36 @@ struct Day09: AdventDay, Sendable {
     return total
   }
   
+  final class SearchIndexes: @unchecked Sendable {
+    // We don't need zero but just ignore and use 1-9
+    var lastSearchedIndexForSize: [Int] = .init(repeating: 0, count: 10)
+    func notFound(size: Int) {
+      found(size: size, index: .max)
+    }
+    
+    func found(size: Int, index: Int) {
+      for s in size...9 {
+        lastSearchedIndexForSize[s] = max(index - 1, lastSearchedIndexForSize[s])
+      }
+    }
+  }
+  
+  let searchIndexes: SearchIndexes = .init()
+  
   func firstIndexOfFreeSpace(freeSpaces:[FreeSpace], size: UInt8, beforeIndex: Int) -> Int? {
-    for (i, freeSpace) in freeSpaces.lazy.enumerated() {
+    let lastSearchedIndex = searchIndexes.lastSearchedIndexForSize[Int(size)]
+    guard lastSearchedIndex < beforeIndex else { return nil }
+    for (i, freeSpace) in zip(lastSearchedIndex..., freeSpaces.dropFirst(lastSearchedIndex)) {
       if freeSpace.index >= beforeIndex {
+        searchIndexes.notFound(size: Int(size))
         return nil
       }
       if freeSpace.size >= size {
+        searchIndexes.lastSearchedIndexForSize[Int(size)] = i
         return i
       }
     }
+    searchIndexes.notFound(size: Int(size))
     return nil
   }
   
@@ -124,7 +145,7 @@ struct Day09: AdventDay, Sendable {
           freeLists[i].index += Int(file.size)
           freeLists[i].size -= file.size
         } else {
-          freeLists.remove(at: i)
+          freeLists[i].size = 0
         }
       } else {
         runningTotal += scoreFile(file: file, atIndex: file.index)
