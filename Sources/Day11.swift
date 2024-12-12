@@ -30,7 +30,7 @@ struct Day11: AdventDay, Sendable {
       currentArray = fullNext.filter { $0 != from }
       runningTotal += fullNext.count - currentArray.count
       result[i] = fullNext.count
-      print("\(i): \(result[i]) running: \(runningTotal) - \(currentArray.count))")
+//      print("\(i): \(result[i]) running: \(runningTotal) - \(currentArray.count))")
     }
     return result
   }
@@ -45,16 +45,25 @@ struct Day11: AdventDay, Sendable {
     }
   }
   
-  func countForStone(stone: Int, zerosArray: [Int], blinks: Int) -> Int {
+  func countForStone(stone: Int, alreadyComputed: inout [Cord2D:Int], blinks: Int) -> Int {
+    let cord = Cord2D(stone, blinks)
     if blinks == 0 {
       return 1
+    } else if let precalcResult = alreadyComputed[cord] {
+      return precalcResult
     } else if stone == 0 {
-      return countForStone(stone: 1, zerosArray: zerosArray, blinks: blinks - 1)
+      let result = countForStone(stone: 1, alreadyComputed: &alreadyComputed, blinks: blinks - 1)
+      alreadyComputed[cord] = result
+      return result
     } else if let (l, r) = stone.digitSplitIfEven2 {
-      let lTotal = countForStone(stone: l, zerosArray: zerosArray, blinks: blinks - 1)
-      return lTotal + countForStone(stone: r, zerosArray: zerosArray, blinks: blinks - 1)
+      let lTotal = countForStone(stone: l, alreadyComputed: &alreadyComputed, blinks: blinks - 1)
+      let result = lTotal + countForStone(stone: r, alreadyComputed: &alreadyComputed, blinks: blinks - 1)
+      alreadyComputed[cord] = result
+      return result
     } else {
-      return countForStone(stone: stone * 2024, zerosArray: zerosArray, blinks: blinks - 1)
+      let result = countForStone(stone: stone * 2024, alreadyComputed: &alreadyComputed, blinks: blinks - 1)
+      alreadyComputed[cord] = result
+      return result
     }
   }
   
@@ -69,18 +78,18 @@ struct Day11: AdventDay, Sendable {
   
   func part2() async throws -> Int {
     let blinks = 75
-    var zeroStartCounts: [Int] = []
-    for i in 0..<blinks {
-      zeroStartCounts.append(countForStone(stone: 0, zerosArray: zeroStartCounts, blinks: i))
-      print("Blink \(i): \(zeroStartCounts[i])")
-    }
+//    for i in 0..<blinks {
+//      let result = countForStone(stone: 0, alreadyComputed: &memoised, blinks: i))
+//      print("Blink \(i): \(result[i])")
+//    }
     
     let stones = Self.parseInput(data: data)
-    let zsc = zeroStartCounts
     return await withTaskGroup(of: Int.self) { group in
       for stone in stones {
         group.addTask {
-          countForStone(stone: stone, zerosArray: zsc, blinks: 75)
+          var memoised: [Cord2D:Int] = [:]
+//          defer { print(memoised.count) }
+          return countForStone(stone: stone, alreadyComputed: &memoised, blinks: blinks)
         }
       }
       return await group.reduce(0, +)
