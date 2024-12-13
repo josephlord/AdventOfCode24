@@ -70,7 +70,7 @@ struct Day11: AdventDay, Sendable {
   // Replace this with your solution for the first part of the day's challenge.
   func part1() async throws -> Int {
     var stones = Self.parseInput(data: data)
-    for i in 1...25 {
+    for _ in 1...25 {
       stones = stones.flatMap(updateStone)
     }
     return stones.count

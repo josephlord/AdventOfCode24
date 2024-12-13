@@ -39,23 +39,6 @@ extension Direction {
   }
 }
 
-func +(lhs: (Int, Int), rhs: (Int, Int)) -> (Int, Int) {
-  (lhs.0 + rhs.0, lhs.1 + rhs.1)
-}
-
-extension Grid where Element : Equatable {
-  func firstIndex(of: Element) -> (Int, Int)? {
-    for y in 0..<rows {
-      for x in 0..<columns {
-        if self[(x, y)] == of {
-          return (x, y)
-        }
-      }
-    }
-    return nil
-  }
-}
-
 fileprivate func key(_ tuple: (Int, Int)) -> Int {
   tuple.0 * 100000 + tuple.1
 }

@@ -26,10 +26,25 @@
 
       @Test("Part2 example")
       func testPart2() async throws {
-        await withKnownIssue {
           let result = try await day.part2()
-          #expect(result == 10)
-        }
+          #expect(result == 1206)
+      }
+    }
+    
+    @Suite("Tests on sample inputs")
+    struct MiniSolutionsTests {
+      let day = Day12(data: miniTestInput)
+
+      @Test("Part1 example")
+      func testPart1() async throws {
+          let result = try await day.part1()
+          #expect(result == 140)
+      }
+
+      @Test("Part2 example")
+      func testPart2() async throws {
+          let result = try await day.part2()
+          #expect(result == 80)
       }
     }
   }
@@ -41,7 +56,6 @@ private let miniTestInput =
   BBCC
   EEEC
   """
-
 
 private let testInput =
   """
