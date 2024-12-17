@@ -62,7 +62,7 @@ struct Day12: AdventDay, Sendable {
     return total
   }
   
-  static func updateNeighbours2(coord: Cord2D, inputGrid: Grid<Character>, resultGrid: inout Grid<(Int, [Direction], Int)>, sizes: inout [Int]) {
+  static func updateNeighbours2Fail(coord: Cord2D, inputGrid: Grid<Character>, resultGrid: inout Grid<(Int, [Direction], Int)>, sizes: inout [Int]) {
     let currentVal = inputGrid[coord]!
     let id = resultGrid[coord]!.0
     sizes[id] += 1
@@ -92,11 +92,11 @@ struct Day12: AdventDay, Sendable {
       let nextCoord = coord + Cord2D(tuple: nextDirection.offset)
       guard resultGrid[nextCoord]?.0 == -1 else { continue }
       resultGrid[nextCoord] = (id, [], 0)
-      updateNeighbours2(coord: nextCoord, inputGrid: inputGrid, resultGrid: &resultGrid, sizes: &sizes)
+      updateNeighbours2Fail(coord: nextCoord, inputGrid: inputGrid, resultGrid: &resultGrid, sizes: &sizes)
     }
   }
 
-  static func parseInput2(_ input: String) -> (Grid<(Int, [Direction] ,Int)>, [Int]) {
+  static func parseInput2Fail(_ input: String) -> (Grid<(Int, [Direction] ,Int)>, [Int]) {
     let inputGrid = try! Grid(data: input.lines.map { line in line.map { $0 }})
     var resultGrid = try! Grid(data: Array(repeating: Array(repeating: (-1, [Direction](), 0), count: inputGrid.columns), count: inputGrid.rows))
     var sizes = [Int]()
@@ -105,6 +105,41 @@ struct Day12: AdventDay, Sendable {
       for x in 0..<inputGrid.columns {
         if resultGrid[x,y]!.0 == -1 {
           resultGrid[x,y] = (id, [], 0)
+          id += 1
+          sizes.append(0)
+          updateNeighbours2Fail(coord: Cord2D(x, y), inputGrid: inputGrid, resultGrid: &resultGrid, sizes: &sizes)
+        }
+      }
+    }
+    return (resultGrid, sizes)
+  }
+  
+  static func updateNeighbours2(coord: Cord2D, inputGrid: Grid<Character>, resultGrid: inout Grid<Int>, sizes: inout [Int]) {
+    let currentVal = inputGrid[coord]!
+    let id = resultGrid[coord]!
+    sizes[id] += 1
+    let nextOptions = Direction.cardinalDirections.filter { direction in
+      let tryingCoord = coord + Cord2D(tuple: direction.offset)
+      return resultGrid[tryingCoord] == -1 &&
+         inputGrid[tryingCoord] == currentVal
+    }
+    for nextDirection in nextOptions {
+      let nextCoord = coord + Cord2D(tuple: nextDirection.offset)
+      guard resultGrid[nextCoord] == -1 else { continue }
+      resultGrid[nextCoord] = id
+      updateNeighbours2(coord: nextCoord, inputGrid: inputGrid, resultGrid: &resultGrid, sizes: &sizes)
+    }
+  }
+  
+  static func parseInput2(_ input: String) -> (Grid<Int>, [Int]) {
+    let inputGrid = try! Grid(data: input.lines.map { line in line.map { $0 }})
+    var resultGrid = try! Grid(data: Array(repeating: Array(repeating: -1, count: inputGrid.columns), count: inputGrid.rows))
+    var sizes = [Int]()
+    var id = 0
+    for y in 0..<inputGrid.rows {
+      for x in 0..<inputGrid.columns {
+        if resultGrid[x,y] == -1 {
+          resultGrid[x,y] = id
           id += 1
           sizes.append(0)
           updateNeighbours2(coord: Cord2D(x, y), inputGrid: inputGrid, resultGrid: &resultGrid, sizes: &sizes)
@@ -117,11 +152,33 @@ struct Day12: AdventDay, Sendable {
   func part2() async throws -> Int {
     let (grid, sizes) = Self.parseInput2(data)
     var total = 0
+    let ew: Set<Direction> = [.e, .w]
+    let ns: Set<Direction> = [.n, .s]
+    
+//    print(grid.map { $0 })
+    
+    var previousLineEW:[Set<Direction>] = .init(repeating: [], count: grid.columns)
+    var currentLineEW:[Set<Direction>] = []
     for y in 0..<grid.rows {
+      var previousNS: Set<Direction> = []
       for x in 0..<grid.columns {
-        let (id, _,  val) = grid[x,y]!
-        total += val * sizes[id]
+        let (id) = grid[x,y]!
+        let edges = Set(Direction.cardinalDirections.filter { direction in
+          let tryingCoord = Cord2D(x, y) + Cord2D(tuple: direction.offset)
+          return grid[tryingCoord] != id
+        })
+        var val = edges
+        if grid[x-1,y] == id { val.subtract(previousNS) }
+//        val.subtracting(previousNS)
+        if grid[x, y-1] == id { val.subtract(previousLineEW[x]) }
+//          .subtracting(previousLineEW[x]).count
+        previousNS = edges.intersection(ns)
+        currentLineEW.append(edges.intersection(ew))
+        total += val.count * sizes[id]
       }
+      
+      previousLineEW = currentLineEW
+      currentLineEW = []
     }
     return total
   }
@@ -129,7 +186,3 @@ struct Day12: AdventDay, Sendable {
 
 // Add any extra code and types in here to separate it from the required behaviour
 extension Day12 {}
-
-extension Grid {
-  
-}

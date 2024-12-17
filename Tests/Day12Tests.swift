@@ -46,6 +46,18 @@
           let result = try await day.part2()
           #expect(result == 80)
       }
+      
+      @Test("Part2 example2")
+      func testPart2b() async throws {
+          let result = try await Day12(data: miniTest2).part2()
+          #expect(result == 236)
+      }
+      
+      @Test("Part2 example3")
+      func testPart2c() async throws {
+          let result = try await Day12(data: miniTest3).part2()
+          #expect(result == 368)
+      }
     }
   }
 }
@@ -55,6 +67,23 @@ private let miniTestInput =
   BBCD
   BBCC
   EEEC
+  """
+
+private let miniTest2 = """
+  EEEEE
+  EXXXX
+  EEEEE
+  EXXXX
+  EEEEE
+  """
+
+private let miniTest3 = """
+  AAAAAA
+  AAABBA
+  AAABBA
+  ABBAAA
+  ABBAAA
+  AAAAAA
   """
 
 private let testInput =

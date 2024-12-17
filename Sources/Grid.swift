@@ -95,3 +95,14 @@ extension Grid where Element : Equatable {
     return nil
   }
 }
+
+extension Grid {
+  var flatArray: [Element] {
+    data.flatMap { $0 }
+  }
+  
+  func map<ResultType>(_ transform: (Element) throws -> ResultType) rethrows -> Grid<ResultType> {
+    let newData = try data.map { line in try line.map { try transform($0) } }
+    return try! Grid<ResultType>(data: newData)
+  }
+}
