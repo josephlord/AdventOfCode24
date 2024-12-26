@@ -147,22 +147,103 @@ struct Day13: AdventDay, Sendable {
     // Only in case 2 do we need to search for multiple options and they should
     // be identifiable if we know the ration
     
-    let abXRatio = Double(machine.buttonAVector.x) / Double(machine.buttonBVector.x)
-    let abYRatio = Double(machine.buttonAVector.y) / Double(machine.buttonBVector.y)
+    // With additions direction to result will be be very close to line y = x (45 degree line)
+    // Need one vector above and the other below the line (unless both are parallel and exactly
+    // right direction.
     
-    let almostParallel = (0.9999..<1.0001).contains(abXRatio / abYRatio)
+    let tGrad = Double(machine.prize.y) / Double(machine.prize.x)
     
-    if almostParallel {
-      if Double(machine.prize.x) / 
-      
-      
-      let aMoreEfficient = abXRatio > 3
-      let bSearchSeq = 0...(machine.prize.x)
+    let aGrad = Double(machine.buttonAVector.y) / Double(machine.buttonAVector.x)
+    let bGrad = Double(machine.buttonBVector.y) / Double(machine.buttonBVector.x)
+    
+    let steepest: Cord2D
+    let shallowest: Cord2D
+    let steepestGrad: Double
+    let shallowestGrad: Double
+    
+    let bSteepest = bGrad > aGrad
+    if bSteepest {
+      steepest = machine.buttonBVector
+      shallowest = machine.buttonAVector
+      steepestGrad = bGrad
+      shallowestGrad = aGrad
     } else {
-      
+      steepest = machine.buttonBVector
+      shallowest = machine.buttonAVector
+      steepestGrad = aGrad
+      shallowestGrad = bGrad
     }
     
+    if steepestGrad < tGrad || shallowestGrad > tGrad {
+      // Catch the unhandled direct route with one vector case here so we can handle if needed.
+      assert(abs(tGrad - steepestGrad) > 0.000_1)
+      assert(abs(tGrad - shallowestGrad) > 0.000_1)
+      return nil
+    }
     
+    let aproxRatio = approximateSolutionRatio(iterations: 6, vector1: steepest, vector2: shallowest, targetGrad: tGrad)
+    
+    let aproxVector = Cord2D(steepest.x * aproxRatio.0 + (shallowest.x * aproxRatio.1), steepest.y * aproxRatio.0 + (shallowest.y * aproxRatio.1))
+    let approxIterations = min(machine.prize.x / aproxVector.x, machine.prize.y / aproxVector.y) - 50
+    
+    let result = solveFrom(
+      steepest: steepest,
+      shallowest: shallowest,
+      target: machine.prize,
+      steepestCount: approxIterations * aproxRatio.0,
+      shallowestCount: approxIterations * aproxRatio.1)
+    guard let result else { return nil }
+    if bSteepest {
+      return result.0 * 3 + result.1
+    } else {
+      return result.1 * 3 + result.0
+    }
+  }
+  
+  func solveFrom(steepest: Cord2D, shallowest: Cord2D, target: Cord2D, steepestCount: Int, shallowestCount: Int) -> (Int, Int)? {
+    let tGrad = target.gradient
+    var steepestCount = steepestCount
+    var shallowestCount = shallowestCount
+    var currentPos: Cord2D = .init(
+      steepestCount * steepest.x + shallowestCount * shallowest.x,
+      steepestCount * steepest.y + shallowestCount * shallowest.y)
+    while currentPos.x < target.x && currentPos.y < target.y {
+      if currentPos.gradient < tGrad {
+        currentPos = currentPos + steepest
+        steepestCount += 1
+      } else {
+        currentPos = currentPos + shallowest
+        shallowestCount += 1
+      }
+    }
+    if currentPos == target {
+      return (steepestCount, shallowestCount)
+    } else {
+      return nil
+    }
+  }
+  
+  func approximateSolutionRatio(iterations: Int, vector1: Cord2D, vector2: Cord2D, targetGrad: Double) -> (Int, Int) {
+    var vector1Count = 0
+    var vector2Count = 0
+    var currentPos: Cord2D = .init(0, 0)
+    while vector1Count + vector2Count < iterations {
+      let nextPlusVec1 = currentPos + vector1
+      let nextPlusVec2 = currentPos + vector2
+      if (nextPlusVec1.gradient == targetGrad) {
+        return (vector1Count + 1, vector2Count)
+      } else if (nextPlusVec2.gradient == targetGrad) {
+        return (vector1Count, vector2Count + 1)
+      } else if abs(targetGrad - nextPlusVec1.gradient) < abs(targetGrad - nextPlusVec2.gradient) {
+        vector1Count += 1
+        currentPos = nextPlusVec1
+      } else {
+        vector2Count += 1
+        currentPos = nextPlusVec2
+      }
+    }
+    
+    return (vector1Count, vector2Count)
   }
   
   func part2() async throws -> Int {
@@ -171,7 +252,7 @@ struct Day13: AdventDay, Sendable {
       machines[i].prize.x += 10000000000000
       machines[i].prize.y += 10000000000000
     }
-    let results = machines.map { self.minVal(machine: $0) ?? 0 }
+    let results = machines.map { self.minValEfficient(machine: $0) ?? 0 }
     
     return results.reduce(0,+)
   }
@@ -182,4 +263,10 @@ extension Day13 {}
 
 func *(lhs: Cord2D, rhs: Int) -> Cord2D {
   Cord2D(lhs.x * rhs, lhs.y * rhs)
+}
+
+extension Cord2D {
+  var gradient: Double {
+    Double(y) / Double(x)
+  }
 }
