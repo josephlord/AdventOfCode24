@@ -103,7 +103,7 @@ struct Day13: AdventDay, Sendable {
   
   
   // Replace this with your solution for the first part of the day's challenge.
-  func part1() async throws -> Int {
+  func part1orig() async throws -> Int {
     let machines = try Self.parseInput(data: data)
     let results = machines.map { self.minVal(machine: $0) ?? 0 }
     
@@ -168,8 +168,8 @@ struct Day13: AdventDay, Sendable {
       steepestGrad = bGrad
       shallowestGrad = aGrad
     } else {
-      steepest = machine.buttonBVector
-      shallowest = machine.buttonAVector
+      steepest = machine.buttonAVector
+      shallowest = machine.buttonBVector
       steepestGrad = aGrad
       shallowestGrad = bGrad
     }
@@ -181,10 +181,10 @@ struct Day13: AdventDay, Sendable {
       return nil
     }
     
-    let aproxRatio = approximateSolutionRatio(iterations: 6, vector1: steepest, vector2: shallowest, targetGrad: tGrad)
+    let aproxRatio = approximateSolutionRatio(iterations: 1_000_000, vector1: steepest, vector2: shallowest, targetGrad: tGrad)
     
     let aproxVector = Cord2D(steepest.x * aproxRatio.0 + (shallowest.x * aproxRatio.1), steepest.y * aproxRatio.0 + (shallowest.y * aproxRatio.1))
-    let approxIterations = min(machine.prize.x / aproxVector.x, machine.prize.y / aproxVector.y) - 50
+    let approxIterations = min(machine.prize.x / aproxVector.x, machine.prize.y / aproxVector.y) - 40
     
     let result = solveFrom(
       steepest: steepest,
@@ -193,7 +193,7 @@ struct Day13: AdventDay, Sendable {
       steepestCount: approxIterations * aproxRatio.0,
       shallowestCount: approxIterations * aproxRatio.1)
     guard let result else { return nil }
-    if bSteepest {
+    if !bSteepest {
       return result.0 * 3 + result.1
     } else {
       return result.1 * 3 + result.0
@@ -233,8 +233,8 @@ struct Day13: AdventDay, Sendable {
       steepestGrad = bGrad
       shallowestGrad = aGrad
     } else {
-      steepest = machine.buttonBVector
-      shallowest = machine.buttonAVector
+      steepest = machine.buttonAVector
+      shallowest = machine.buttonBVector
       steepestGrad = aGrad
       shallowestGrad = bGrad
     }
@@ -258,7 +258,7 @@ struct Day13: AdventDay, Sendable {
       steepestCount: 0,
       shallowestCount: 0)
     guard let result else { return nil }
-    if bSteepest {
+    if !bSteepest {
       return result.0 * 3 + result.1
     } else {
       return result.1 * 3 + result.0
@@ -317,7 +317,29 @@ struct Day13: AdventDay, Sendable {
       machines[i].prize.x += 10000000000000
       machines[i].prize.y += 10000000000000
     }
-    let results = machines.map { self.minValEfficient(machine: $0) ?? 0 }
+    
+    var total = 0
+    var count = 0
+    for machine in machines {
+      let result = self.minValEfficient(machine: machine)
+//      print("\(count)    \(result?.description ?? "nil")    \(total)")
+      total += result ?? 0
+      count += 1
+    }
+    return total
+//    let results = machines.map { self.minValEfficient2(machine: $0) ?? 0 }
+//    let results = machines.map { self.solveFrom(steepest: <#T##Cord2D#>, shallowest: <#T##Cord2D#>, target: <#T##Cord2D#>, steepestCount: <#T##Int#>, shallowestCount: <#T##Int#>)}
+    
+//    return results.reduce(0,+)
+  }
+  
+  func part1() async throws -> Int {
+    let machines = try Self.parseInput(data: data)
+//    for i in machines.indices {
+//      machines[i].prize.x += 10000000000000
+//      machines[i].prize.y += 10000000000000
+//    }
+    let results = machines.map { self.minValEfficient2(machine: $0) ?? 0 }
 //    let results = machines.map { self.solveFrom(steepest: <#T##Cord2D#>, shallowest: <#T##Cord2D#>, target: <#T##Cord2D#>, steepestCount: <#T##Int#>, shallowestCount: <#T##Int#>)}
     
     return results.reduce(0,+)
