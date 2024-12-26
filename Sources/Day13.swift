@@ -200,6 +200,71 @@ struct Day13: AdventDay, Sendable {
     }
   }
   
+  func minValEfficient2(machine: ClawMachine) -> Int? {
+    // 4 possible situations
+    // 1) single solution (non parallel vectors)
+    // 2) multiple solutions (A is multiple (possibly non-integer) of B or vice versa)
+    // 3) A and B parallel and not aligned to prize - no solution
+    // 4) A and B parallel and aligned but no integer solution
+    // 5) A and B non-parallel but no integer solution
+    
+    // Approach solve vector equation with Doubles then verify with integers
+    // Only in case 2 do we need to search for multiple options and they should
+    // be identifiable if we know the ration
+    
+    // With additions direction to result will be be very close to line y = x (45 degree line)
+    // Need one vector above and the other below the line (unless both are parallel and exactly
+    // right direction.
+    
+    let tGrad = Double(machine.prize.y) / Double(machine.prize.x)
+    
+    let aGrad = Double(machine.buttonAVector.y) / Double(machine.buttonAVector.x)
+    let bGrad = Double(machine.buttonBVector.y) / Double(machine.buttonBVector.x)
+    
+    let steepest: Cord2D
+    let shallowest: Cord2D
+    let steepestGrad: Double
+    let shallowestGrad: Double
+    
+    let bSteepest = bGrad > aGrad
+    if bSteepest {
+      steepest = machine.buttonBVector
+      shallowest = machine.buttonAVector
+      steepestGrad = bGrad
+      shallowestGrad = aGrad
+    } else {
+      steepest = machine.buttonBVector
+      shallowest = machine.buttonAVector
+      steepestGrad = aGrad
+      shallowestGrad = bGrad
+    }
+    
+    if steepestGrad < tGrad || shallowestGrad > tGrad {
+      // Catch the unhandled direct route with one vector case here so we can handle if needed.
+      assert(abs(tGrad - steepestGrad) > 0.000_1)
+      assert(abs(tGrad - shallowestGrad) > 0.000_1)
+      return nil
+    }
+    
+//    let aproxRatio = approximateSolutionRatio(iterations: 6, vector1: steepest, vector2: shallowest, targetGrad: tGrad)
+    
+//    let aproxVector = Cord2D(steepest.x * aproxRatio.0 + (shallowest.x * aproxRatio.1), steepest.y * aproxRatio.0 + (shallowest.y * aproxRatio.1))
+//    let approxIterations = min(machine.prize.x / aproxVector.x, machine.prize.y / aproxVector.y) - 50
+    
+    let result = solveFrom(
+      steepest: steepest,
+      shallowest: shallowest,
+      target: machine.prize,
+      steepestCount: 0,
+      shallowestCount: 0)
+    guard let result else { return nil }
+    if bSteepest {
+      return result.0 * 3 + result.1
+    } else {
+      return result.1 * 3 + result.0
+    }
+  }
+  
   func solveFrom(steepest: Cord2D, shallowest: Cord2D, target: Cord2D, steepestCount: Int, shallowestCount: Int) -> (Int, Int)? {
     let tGrad = target.gradient
     var steepestCount = steepestCount
@@ -253,6 +318,7 @@ struct Day13: AdventDay, Sendable {
       machines[i].prize.y += 10000000000000
     }
     let results = machines.map { self.minValEfficient(machine: $0) ?? 0 }
+//    let results = machines.map { self.solveFrom(steepest: <#T##Cord2D#>, shallowest: <#T##Cord2D#>, target: <#T##Cord2D#>, steepestCount: <#T##Int#>, shallowestCount: <#T##Int#>)}
     
     return results.reduce(0,+)
   }
