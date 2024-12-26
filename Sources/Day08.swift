@@ -82,8 +82,8 @@ struct Day08: AdventDay, Sendable {
 extension Day08 {}
 
 struct Cord2D : Hashable, Sendable, Equatable {
-  let x: Int
-  let y: Int
+  var x: Int
+  var y: Int
   
   init(_ x: Int, _ y: Int) {
     self.x = x

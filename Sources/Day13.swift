@@ -70,7 +70,7 @@ struct Day13: AdventDay, Sendable {
             buttonBVector: .init($0.output.3, $0.output.4)) }
   }
   
-  func minVal(machine: ClawMachine) -> Int? {
+  func minVal100(machine: ClawMachine) -> Int? {
     var minScore: Int?
     let xALimit = machine.prize.x / machine.buttonAVector.x
     let yALimit = machine.prize.y / machine.buttonAVector.y
@@ -105,6 +105,72 @@ struct Day13: AdventDay, Sendable {
   // Replace this with your solution for the first part of the day's challenge.
   func part1() async throws -> Int {
     let machines = try Self.parseInput(data: data)
+    let results = machines.map { self.minVal(machine: $0) ?? 0 }
+    
+    return results.reduce(0,+)
+  }
+  
+  
+  func minVal(machine: ClawMachine) -> Int? {
+    var minScore: Int?
+    let xBLimit = machine.prize.x / machine.buttonBVector.x
+    let yBLimit = machine.prize.y / machine.buttonBVector.y
+    //    let xBLimit = machine.prize.x / machine.buttonBVector.x
+    //    let yBLimit = machine.prize.y / machine.buttonBVector.y
+    let maxB = min(xBLimit, yBLimit)
+    
+    for bCount in (0...maxB).reversed() {
+      let target = machine.prize - machine.buttonBVector * bCount
+      let aCount = target.x / machine.buttonAVector.x
+      let score = bCount + 3 * aCount
+      if score > minScore ?? .max {
+        return minScore // We have passed the optimum
+      }
+      guard target.x % machine.buttonAVector.x == 0,
+            target.y % machine.buttonAVector.y == 0,
+            target.y / machine.buttonAVector.y == aCount
+      else { continue }
+      minScore = score
+    }
+    return minScore
+  }
+
+  func minValEfficient(machine: ClawMachine) -> Int? {
+    // 4 possible situations
+    // 1) single solution (non parallel vectors)
+    // 2) multiple solutions (A is multiple (possibly non-integer) of B or vice versa)
+    // 3) A and B parallel and not aligned to prize - no solution
+    // 4) A and B parallel and aligned but no integer solution
+    // 5) A and B non-parallel but no integer solution
+    
+    // Approach solve vector equation with Doubles then verify with integers
+    // Only in case 2 do we need to search for multiple options and they should
+    // be identifiable if we know the ration
+    
+    let abXRatio = Double(machine.buttonAVector.x) / Double(machine.buttonBVector.x)
+    let abYRatio = Double(machine.buttonAVector.y) / Double(machine.buttonBVector.y)
+    
+    let almostParallel = (0.9999..<1.0001).contains(abXRatio / abYRatio)
+    
+    if almostParallel {
+      if Double(machine.prize.x) / 
+      
+      
+      let aMoreEfficient = abXRatio > 3
+      let bSearchSeq = 0...(machine.prize.x)
+    } else {
+      
+    }
+    
+    
+  }
+  
+  func part2() async throws -> Int {
+    var machines = try Self.parseInput(data: data)
+    for i in machines.indices {
+      machines[i].prize.x += 10000000000000
+      machines[i].prize.y += 10000000000000
+    }
     let results = machines.map { self.minVal(machine: $0) ?? 0 }
     
     return results.reduce(0,+)
