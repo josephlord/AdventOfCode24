@@ -75,6 +75,19 @@ public struct Grid<Element> {
 extension Grid: CustomStringConvertible {
   public var description: String {
     data.map { line in line.map { "\($0)" }.joined() }
+      .joined(separator: "\n")
+  }
+}
+
+extension Grid where Element == Int {
+  public var descriptionBlankZeros: String {
+    data.map { line in line.map {
+      switch $0 {
+      case 0: return " "
+      case 1...9: return "\($0)"
+      case _ where $0 < 0: return "-"
+      case _: return "#"
+      }}.joined() }
         .joined(separator: "\n")
   }
 }
