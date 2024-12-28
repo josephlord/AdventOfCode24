@@ -179,12 +179,7 @@ extension Cord2D {
   }
 }
 
-extension Grid {
-  subscript (coord: Cord2D) -> Element? {
-    get { self[coord.x, coord.y] }
-    set { self[coord.x, coord.y] = newValue }
-  }
-}
+
 
 // Add any extra code and types in here to separate it from the required behaviour
 extension Day10 {}

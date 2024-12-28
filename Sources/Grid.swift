@@ -21,6 +21,10 @@ enum Direction: Equatable, CaseIterable {
     case .nw: return (-1, -1)
     }
   }
+  
+  var offsetCord: Cord2D {
+    .init(tuple: self.offset)
+  }
 }
 
 public struct Grid<Element> {
@@ -107,6 +111,19 @@ extension Grid where Element : Equatable {
     }
     return nil
   }
+  
+  func indexes(of: Element) -> [Cord2D] {
+    
+    var result = [Cord2D]()
+    for y in 0..<rows {
+      for x in 0..<columns {
+        if self[(x, y)] == of {
+          result.append(.init(x, y))
+        }
+      }
+    }
+    return result
+  }
 }
 
 extension Grid {
@@ -117,5 +134,13 @@ extension Grid {
   func map<ResultType>(_ transform: (Element) throws -> ResultType) rethrows -> Grid<ResultType> {
     let newData = try data.map { line in try line.map { try transform($0) } }
     return try! Grid<ResultType>(data: newData)
+  }
+}
+
+
+extension Grid {
+  subscript (coord: Cord2D) -> Element? {
+    get { self[coord.x, coord.y] }
+    set { self[coord.x, coord.y] = newValue }
   }
 }
