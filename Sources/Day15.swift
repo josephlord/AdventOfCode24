@@ -19,6 +19,8 @@ struct Day15: AdventDay, Sendable {
     case empty
     case box
     case wall
+    case boxLeft
+    case boxRight
     
     enum Error : Swift.Error {
       case invalidCharacter, robot
@@ -39,11 +41,13 @@ struct Day15: AdventDay, Sendable {
       case .box: return "O"
       case .empty: return "."
       case .wall: return "#"
+      case .boxLeft: return "["
+      case .boxRight: return "]"
       }
     }
   }
 
-  static func parseInput(data: String) throws -> (Grid<WareHouseSlotContent>, [Direction], Cord2D) {
+  static func parseInput(data: String, part2: Bool = false) throws -> (Grid<WareHouseSlotContent>, [Direction], Cord2D) {
     let lines = data.lines
     var iter = lines.makeIterator()
     var line = iter.next()
@@ -54,10 +58,24 @@ struct Day15: AdventDay, Sendable {
       var row: [WareHouseSlotContent] = []
       for (char, column) in zip(line!, 0...) {
         do {
-          try row.append(.init(char))
+          let content = try WareHouseSlotContent(char)
+          if part2 && content == .box {
+            row.append(.boxLeft)
+            row.append(.boxRight)
+          } else {
+            if part2 {
+              row.append(content)
+            }
+            row.append(content)
+          }
         } catch WareHouseSlotContent.Error.robot {
           row.append(.empty)
-          start = .init(column, rowNumber)
+          if part2 {
+            row.append(.empty)
+            start = .init(column * 2, rowNumber)
+          } else {
+            start = .init(column, rowNumber)
+          }
         }
       }
       rowNumber += 1
@@ -85,6 +103,10 @@ struct Day15: AdventDay, Sendable {
     map.indexes(of: .box).map { 100 * $0.y + $0.x }.reduce(0, +)
   }
   
+  func computeTotal2(map: Grid<WareHouseSlotContent>) -> Int {
+    map.indexes(of: .boxLeft).map { 100 * $0.y + $0.x }.reduce(0, +)
+  }
+  
   func attemptMoveBox(warehouseMap: inout Grid<WareHouseSlotContent>, boxLocation: Cord2D, direction: Direction) -> Bool {
     let targetLocation = boxLocation + direction.offsetCord
     switch warehouseMap[targetLocation] {
@@ -100,6 +122,8 @@ struct Day15: AdventDay, Sendable {
       }
     case .wall:
       return false
+    case .boxLeft, .boxRight:
+      preconditionFailure()
     case .none:
       preconditionFailure()
     }
@@ -117,7 +141,7 @@ struct Day15: AdventDay, Sendable {
       }
     case .wall:
       break
-    case .none:
+    case .none, .boxLeft, .boxRight:
       preconditionFailure()
     }
   }
@@ -136,6 +160,103 @@ struct Day15: AdventDay, Sendable {
   // Replace this with your solution for the first part of the day's challenge.
   func part1() async throws -> Int {
     try doPart1(data: data)
+  }
+  
+//  func checkMove(warehouseMap: Grid<WareHouseSlotContent>, fromLocation: Cord2D, direction: Direction) -> Bool {
+//    let targetLocation = fromLocation + direction.offsetCord
+//    return switch (warehouseMap[targetLocation], [.n, .s].contains(direction)) {
+//    case (.empty, _):
+//      true
+//    case (.boxLeft, true):
+//      checkMove(warehouseMap: warehouseMap, fromLocation: targetLocation, direction: direction)
+//      && checkMove(warehouseMap: warehouseMap, fromLocation: targetLocation + Direction.e.offsetCord, direction: direction)
+//    case (.boxRight, true):
+//      checkMove(warehouseMap: warehouseMap, fromLocation: targetLocation, direction: direction)
+//      && checkMove(warehouseMap: warehouseMap, fromLocation: targetLocation + Direction.w.offsetCord, direction: direction)
+//    case (.boxRight, false), (.boxLeft, false):
+//      checkMove(warehouseMap: warehouseMap, fromLocation: targetLocation + direction.offsetCord, direction: direction)
+//    case (.wall, _):
+//      false
+//    case (.box, _), (.none, _):
+//      preconditionFailure()
+//    }
+//  }
+  
+  enum WarehouseError : Error {
+    case wall
+  }
+  
+  func moveIfNecessary(warehouseMap: inout Grid<WareHouseSlotContent>, locationToMove: Cord2D, direction: Direction) throws {
+    switch (warehouseMap[locationToMove], [.n, .s].contains(direction)) {
+      case (.empty, _):
+      break
+    case (.wall, _):
+      throw WarehouseError.wall
+    case (.boxLeft, false), (.boxRight, false):
+      try moveIfNecessary(
+        warehouseMap: &warehouseMap,
+        locationToMove: locationToMove + direction.offsetCord + direction.offsetCord,
+        direction: direction)
+      warehouseMap[locationToMove + direction.offsetCord + direction.offsetCord] = warehouseMap[locationToMove + direction.offsetCord]
+      warehouseMap[locationToMove + direction.offsetCord] = warehouseMap[locationToMove]
+      warehouseMap[locationToMove] = .empty
+    case (.boxLeft, true):
+      try moveIfNecessary(
+        warehouseMap: &warehouseMap,
+        locationToMove: locationToMove + direction.offsetCord,
+        direction: direction)
+      try moveIfNecessary(
+        warehouseMap: &warehouseMap,
+        locationToMove: locationToMove + direction.offsetCord + Direction.e.offsetCord,
+        direction: direction)
+      warehouseMap[locationToMove + direction.offsetCord] = .boxLeft
+      warehouseMap[locationToMove + direction.offsetCord + Direction.e.offsetCord] = .boxRight
+      warehouseMap[locationToMove] = .empty
+      warehouseMap[locationToMove + Direction.e.offsetCord] = .empty
+    case (.boxRight, true):
+      try moveIfNecessary(
+        warehouseMap: &warehouseMap,
+        locationToMove: locationToMove + direction.offsetCord,
+        direction: direction)
+      try moveIfNecessary(
+        warehouseMap: &warehouseMap,
+        locationToMove: locationToMove + direction.offsetCord + Direction.w.offsetCord,
+        direction: direction)
+      warehouseMap[locationToMove + direction.offsetCord] = .boxRight
+      warehouseMap[locationToMove + direction.offsetCord + Direction.w.offsetCord] = .boxLeft
+      warehouseMap[locationToMove] = .empty
+      warehouseMap[locationToMove + Direction.w.offsetCord] = .empty
+    default:
+      preconditionFailure()
+    }
+  }
+  
+  func attemptMove2(warehouseMap: inout Grid<WareHouseSlotContent>, robotLocation: inout Cord2D, direction: Direction) {
+    do {
+      let targetLocation = robotLocation + direction.offsetCord
+      var mapCopy = warehouseMap
+      try moveIfNecessary(warehouseMap: &mapCopy, locationToMove: targetLocation, direction: direction)
+      warehouseMap = mapCopy
+      robotLocation = targetLocation
+    } catch WarehouseError.wall {
+      return
+    } catch {
+      preconditionFailure()
+    }
+  }
+  
+  func doPart2(data: String) throws -> Int {
+    var (warehouseMap, instructions, robotLocation) = try Self.parseInput(data: data, part2: true)
+    
+    for instruction in instructions {
+      attemptMove2(warehouseMap: &warehouseMap, robotLocation: &robotLocation, direction: instruction)
+//      print(warehouseMap)
+    }
+    
+    return computeTotal2(map: warehouseMap)
+  }
+  func part2() async throws -> Int {
+    try doPart2(data: data)
   }
 }
 

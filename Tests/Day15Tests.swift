@@ -31,11 +31,15 @@
       }
 
       @Test("Part2 example")
+      func testPart2Mini() async throws {
+        let result = try day.doPart2(data: testInputMini2)
+          #expect(result == 618)
+      }
+      
+      @Test("Part2 example")
       func testPart2() async throws {
-        await withKnownIssue {
           let result = try await day.part2()
-          #expect(result == 10)
-        }
+          #expect(result == 9021)
       }
     }
   }
@@ -54,6 +58,17 @@ private let testInputMini = """
   <^^>>>vv<v>>v<<
   """
 
+private let testInputMini2 = """
+#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^
+"""
 private let testInput =
   """
   ##########
