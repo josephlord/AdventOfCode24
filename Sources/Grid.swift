@@ -25,6 +25,41 @@ enum Direction: Equatable, CaseIterable {
   var offsetCord: Cord2D {
     .init(tuple: self.offset)
   }
+  
+  var clockwise: Direction {
+    switch self {
+    case .n: .e
+    case .e: .s
+    case .s: .w
+    case .w: .n
+    default:
+      preconditionFailure()
+    }
+  }
+  
+  var counterClockwise: Direction {
+    switch self {
+    case .n: .w
+    case .e: .n
+    case .s: .e
+    case .w: .s
+    default:
+      preconditionFailure()
+    }
+  }
+  
+  var reversed: Direction {
+    switch self {
+    case .n: .s
+    case .s: .n
+    case .e: .w
+    case .w: .e
+    case .ne: .sw
+    case .nw: .se
+    case .se: .nw
+    case .sw: .ne
+    }
+  }
 }
 
 public struct Grid<Element> {
