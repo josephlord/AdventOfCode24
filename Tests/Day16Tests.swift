@@ -26,10 +26,15 @@
 
       @Test("Part2 example")
       func testPart2() async throws {
-        await withKnownIssue {
           let result = try await day.part2()
-          #expect(result == 10)
-        }
+          #expect(result == 45)
+      }
+      
+      @Test("Part2b example")
+      func testPart2b() async throws {
+        let day = Day16(data: testInput2)
+          let result = try await day.part2()
+          #expect(result == 64)
       }
     }
   }
@@ -53,3 +58,23 @@ private let testInput =
   #S..#.....#...#
   ###############
   """
+
+private let testInput2 = """
+#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#.#
+#.#.#.#...#...#.#
+#.#.#.#.###.#.#.#
+#...#.#.#.....#.#
+#.#.#.#.#.#####.#
+#.#...#.#.#.....#
+#.#.#####.#.###.#
+#.#.#.......#...#
+#.#.###.#####.###
+#.#.#...#.....#.#
+#.#.#.#####.###.#
+#.#.#.........#.#
+#.#.#.#########.#
+#S#.............#
+#################
+"""
