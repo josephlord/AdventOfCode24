@@ -22,6 +22,11 @@ struct Day17: AdventDay, Sendable {
     var instructionPointer: Int = 0
     var output: [UInt8] = []
     var program: [UInt8] = []
+    var expectedOutput: [UInt8]? = nil
+    
+    enum ComputerError : Error {
+      case unexpectedOutput
+    }
     
     mutating func run() throws {
       while instructionPointer < program.count {
@@ -43,7 +48,7 @@ struct Day17: AdventDay, Sendable {
       case 4:
         bxc()
       case 5:
-        out()
+        try out()
       case 6:
         try bdv()
       case 7:
@@ -98,8 +103,16 @@ struct Day17: AdventDay, Sendable {
       registerB = registerB ^ registerC
     }
     
-    mutating func out() {
-      output.append(UInt8(comboOperand % 8))
+    mutating func out() throws {
+      let outVal = UInt8(comboOperand % 8)
+      if expectedOutput != nil {
+        let nextExpected = expectedOutput!.removeLast()
+        if nextExpected != outVal {
+          throw ComputerError.unexpectedOutput
+        }
+      } else {
+        output.append(outVal)
+      }
     }
     
     mutating func bdv() throws {
@@ -152,14 +165,20 @@ struct Day17: AdventDay, Sendable {
   }
   
   func part2() async throws -> String {
-    let computer = try Self.parseInput(data)
+    var computer = try Self.parseInput(data)
     let targetOutput = computer.program
+    computer.expectedOutput = .init(targetOutput.reversed())
     for i in 0... {
+      print(i)
       var computerCopy = computer
       computerCopy.registerA = i
-      try computerCopy.run()
-      if computerCopy.output == targetOutput {
-        return i.description
+      do {
+        try computerCopy.run()
+        if computerCopy.expectedOutput == [] {
+          return i.description
+        }
+      } catch Computer.ComputerError.unexpectedOutput {
+        continue
       }
     }
     preconditionFailure()
