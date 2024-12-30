@@ -168,20 +168,19 @@ struct Day17: AdventDay, Sendable {
     let computer = try Self.parseInput(data)
     let targetOutput = computer.program
     var registerAInitialValue = 0
-    for length in 1...targetOutput.count {
+    var nextTargetLength: Int = 1
+    while nextTargetLength <= targetOutput.count {
       registerAInitialValue <<= 3
-      let reducedTarget = Array(targetOutput.suffix(length))
-      for v in 0...8 {
-        if v == 8 {
-          preconditionFailure()
-        }
+      let reducedTarget = Array(targetOutput.suffix(nextTargetLength))
+      while true {
         var computerCopy = computer
-        computerCopy.registerA = registerAInitialValue | v
+        computerCopy.registerA = registerAInitialValue
         try computerCopy.run()
         if computerCopy.output == reducedTarget {
-          registerAInitialValue |= v
+          nextTargetLength += 1
           break
         }
+        registerAInitialValue += 1
       }
       print(reducedTarget)
       print(registerAInitialValue)
@@ -196,7 +195,16 @@ struct Day17: AdventDay, Sendable {
     
     return registerAInitialValue.description
   }
+
   
+//  2 4 bst regB = regA AND 7
+//  1 3 bxl regB = regB XOR 3
+//  7 5 cdv regC = regA >> regB
+//  0 3 adv regA = regA >> 3
+//  1 5 bxl regB = regB XOR 5
+//  4 4 bxc regB = regB XOR regC
+//  5 5 out regB % 8
+//  3 0 Goto start if reg A != 0
 
 }
 
