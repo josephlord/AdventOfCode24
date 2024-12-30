@@ -182,16 +182,7 @@ struct Day17: AdventDay, Sendable {
         }
         registerAInitialValue += 1
       }
-      print(reducedTarget)
-      print(registerAInitialValue)
     }
-    
-    var compCopy = computer
-    compCopy.registerA = registerAInitialValue
-    try compCopy.run()
-    print(compCopy.program)
-    print(compCopy.output)
-    print(compCopy.registerA)
     
     return registerAInitialValue.description
   }
