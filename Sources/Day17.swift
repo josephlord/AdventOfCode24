@@ -166,127 +166,38 @@ struct Day17: AdventDay, Sendable {
   
   func part2() async throws -> String {
     let computer = try Self.parseInput(data)
-    var reverseComputer = ReverseComputer(computer: computer)
-    try reverseComputer.run()
-    return reverseComputer.registerA.description
+    let targetOutput = computer.program
+    var registerAInitialValue = 0
+    for length in 1...targetOutput.count {
+      registerAInitialValue <<= 3
+      let reducedTarget = Array(targetOutput.suffix(length))
+      for v in 0...8 {
+        if v == 8 {
+          preconditionFailure()
+        }
+        var computerCopy = computer
+        computerCopy.registerA = registerAInitialValue | v
+        try computerCopy.run()
+        if computerCopy.output == reducedTarget {
+          registerAInitialValue |= v
+          break
+        }
+      }
+      print(reducedTarget)
+      print(registerAInitialValue)
+    }
+    
+    var compCopy = computer
+    compCopy.registerA = registerAInitialValue
+    try compCopy.run()
+    print(compCopy.program)
+    print(compCopy.output)
+    print(compCopy.registerA)
+    
+    return registerAInitialValue.description
   }
   
-  struct ReverseComputer {
-    var registerA: Int = 0
-    var registerB: Int = 0
-    var registerC: Int = 0
-    var instructionPointer: Int
-//    var output: [UInt8] = []
-    var program: [UInt8] = []
-    var expectedOutput: [UInt8] = []
-    
-    init(computer: Computer) {
-      registerA = 0
-      registerB = 0
-      registerC = 0
-      instructionPointer = computer.program.count - 2
-      program = computer.program
-      expectedOutput = .init(program.reversed())
-    }
-    
-    mutating func run() throws {
-      while try !performPrevious() {}
-    }
-    
-    mutating func performPrevious() throws -> Bool {
-      switch program[instructionPointer] {
-      case 0:
-        try adv()
-      case 1:
-        bxl()
-      case 2:
-        bst()
-      case 3:
-        if expectedOutput.isEmpty {
-          return true
-        }
-      case 4:
-        bxc()
-      case 5:
-        try out()
-      case 6:
-        try bdv()
-      case 7:
-        try cdv()
-      default:
-        preconditionFailure()
-      }
-      instructionPointer -= 2
-      if instructionPointer < 0 {
-        instructionPointer = program.count - 2
-      }
-      return false
-    }
-    
-    var comboOperand: Int {
-      let operandVal = program[instructionPointer + 1]
-      return switch operandVal {
-      case 0...3:
-        Int(operandVal)
-      case 4:
-        registerA
-      case 5:
-        registerB
-      case 6:
-        registerC
-      default:
-        preconditionFailure()
-      }
-    }
-    
-    var literalOperand: Int {
-      Int(program[instructionPointer + 1])
-    }
-    
-    mutating func adv() throws {
-      registerA = registerA * (1 << comboOperand)
-    }
-    
-    mutating func bxl() {
-      registerB = literalOperand ^ registerB
-    }
-    
-    mutating func bst() {
-      registerB = comboOperand & 7
-    }
-    
-    mutating func jnz() {
-      
-    }
-    
-    mutating func bxc() {
-      registerB = registerB ^ registerC
-    }
-    
-    mutating func out() throws {
-      let result = expectedOutput.removeLast()
-      let operand = program[instructionPointer + 1]
-      switch operand {
-      case 0...3:
-        precondition(operand == result)
-      case 4:
-        registerA = (registerA & ~7) | Int(result)
-      case 5:
-        registerB = (registerB & ~7) | Int(result)
-      case 6:
-        registerC = (registerC & ~7) | Int(result)
-      default: preconditionFailure()
-      }
-    }
-    
-    mutating func bdv() throws {
-      registerA = registerB * (1 << comboOperand)
-    }
-    
-    mutating func cdv() throws {
-      registerA = registerC * (1 << comboOperand)
-    }
-  }
+
 }
 
 // Add any extra code and types in here to separate it from the required behaviour
