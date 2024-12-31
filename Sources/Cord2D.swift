@@ -14,6 +14,34 @@ struct Cord2D : Hashable, Sendable, Equatable {
     self.y = y
   }
   
+  enum Error : Swift.Error {
+    case invalidInput
+  }
+  
+  init(string: String) throws {
+    let cords = string.split(separator: ",")
+    guard cords.count == 2,
+          let x = Int(cords[0]),
+          let y = Int(cords[1])
+    else {
+      throw Error.invalidInput
+    }
+    self.x = x
+    self.y = y
+  }
+  
+  init(substring: Substring) throws {
+    let cords = substring.split(separator: ",")
+    guard cords.count == 2,
+          let x = Int(cords[0]),
+          let y = Int(cords[1])
+    else {
+      throw Error.invalidInput
+    }
+    self.x = x
+    self.y = y
+  }
+  
   func isInRange(width: Int, height: Int) -> Bool {
     x >= 0 && x < width && y >= 0 && y < height
   }
